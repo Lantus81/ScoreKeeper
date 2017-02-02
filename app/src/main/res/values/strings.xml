@@ -30,15 +30,14 @@
     <string name="player_2">Player 2</string>
     <string name="previous_sets">PREVIOUS SETS</string>
     <string name="reset">reset</string>
-    <string name="statistic">Statistic</string>
+    <string name="statistic">Statistics</string>
+
+    <!-- Unforced error button [CHAR LIMIT=7] -->
     <string name="unf_error_button">U.Error</string>
+    <!-- Forced error button [CHAR LIMIT=7] -->
     <string name="forced_error_button">F.Error</string>
-    <string name="zero">0</string>
-    <string name="one">1</string>
-    <string name="two">2</string>
-    <string name="three">3</string>
-    <string name="four">4</string>
-    <string name="five">5</string>
+
+
     <string name="sets">SETS</string>
     <string name="games">GAMES</string>
     <string name="points">POINTS</string>
@@ -46,4 +45,27 @@
     <string name="winner">Winner</string>
     <string name="winner_player">WINNER</string>
     <string name="serve">Serve</string>
+
+    <!-- Settings Menu Item [CHAR LIMIT=NONE] -->
+    <string name="settings_menu_item">Settings</string>
+    <!-- Settings Activity Title [CHAR LIMIT=NONE] -->
+    <string name="settings_title">Match Settings</string>
+
+    <!-- Strings For Minimum Number Of Sets Preference [CHAR LIMIT=30] -->
+    <string name="settings_number_of_sets_label">Number of Sets for win</string>
+    <string name="settings_number_of_sets_key" translatable="false">number_of_sets</string>
+    <string name="settings_number_of_sets_default" translatable="false">2</string>
+
+    <!-- Strings For Tiebreak Preference [CHAR LIMIT=30] -->
+    <string name="settings_tiebreak_label">Tiebreak</string>
+    <string name="settings_tiebreak_key" translatable="false">tiebreak_value</string>
+    <string name="settings_tiebreak_default" translatable="false">@string/settings_tiebreak_true_value</string>
+
+    <!-- Label for Tiebreak true option [CHAR LIMIT=20] -->
+    <string name="settings_tiebreak_true_label">Play Tiebreak</string>
+    <string name="settings_tiebreak_true_value" translatable="false">Yes</string>
+
+    <!-- Label for Tiebreak false option [CHAR LIMIT=20] -->
+    <string name="settings_tiebreak_false_label">No Tiebreak</string>
+    <string name="settings_tiebreak_false_value" translatable="false">No</string>
 </resources>
