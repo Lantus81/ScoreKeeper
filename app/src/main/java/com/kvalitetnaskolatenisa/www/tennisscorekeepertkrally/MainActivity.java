@@ -1,15 +1,27 @@
 package com.kvalitetnaskolatenisa.www.tennisscorekeepertkrally;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     int gamesPlayer2 = 0;
     int setsPlayer1 = 0;
     int setsPlayer2 = 0;
+
     int numberOfSetsForWin = 2;
     int numberOfServeInTieBreak = 0;
     boolean serveOfPlayer = true;
@@ -27,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     boolean firstFault = true;
     boolean showStatistic = true;
     boolean matchWon = false;
+    boolean tiebreakFinal = true;
     /**
      * statistic variables
      */
@@ -43,10 +57,46 @@ public class MainActivity extends AppCompatActivity {
     int forcedErrorPlayer2 = 0;
     int unforcedErrorPlayer2 = 0;
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        /**
+         * manage preferences of app. Tiebreak and number of sets for win
+         */
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String setsNumber = sharedPrefs.getString(
+                getString(R.string.settings_number_of_sets_key),
+                getString(R.string.settings_number_of_sets_default));
+        String tiebreakFinalString = sharedPrefs.getString(
+                getString(R.string.settings_tiebreak_key),
+                getString(R.string.settings_tiebreak_default));
+        numberOfSetsForWin = Integer.parseInt(setsNumber);
+        TextView textViewRules = (TextView) findViewById(R.id.rules);
+        textViewRules.setText("Number of sets for win: " + setsNumber + "  Play tiebreak: " + tiebreakFinalString);
+        if (tiebreakFinalString.equals("No")) {
+            tiebreakFinal = false;
+        } else {
+            tiebreakFinal = true;
+        }
         /**
          * hide buttons and statistic at onCreate
          */
@@ -156,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
             /**
              * check if player has Win the tiebreak
              */
-            if (pointsPlayer2 >= 6 && pointsPlayer2 > pointsPlayer1 + 1 && tieBreak ) {
+            if (pointsPlayer2 >= 6 && pointsPlayer2 > pointsPlayer1 + 1 && tieBreak) {
                 gamesPlayer2++;
                 displayGamesForPlayer2(gamesPlayer2);
                 tieBreak = false;
@@ -214,12 +264,12 @@ public class MainActivity extends AppCompatActivity {
         /**
          * check if tiebreak needs to be played
          */
-        if (gamesPlayer1 == 6 && gamesPlayer2 == 6) {
+        if (gamesPlayer1 == 6 && gamesPlayer2 == 6 && tiebreakFinal) {
             tieBreak = true;
             textViewDeuce.setText(getString(R.string.tiebreak));
             /**
              * in tiebreak first serve has player who is next on serve in order and tiebreak is like one game,
-             * so they change serve in tiebreak but continue with normal serving after. WHO INVENTED THIS RULES
+             * so they change serve in tiebreak but continue with normal serving after.
              *
              */
             serveOfPlayerInTieBreak = serveOfPlayer;
@@ -257,12 +307,12 @@ public class MainActivity extends AppCompatActivity {
         /**
          * check if tiebreak needs to be played
          */
-        if (gamesPlayer1 == 6 && gamesPlayer2 == 6) {
+        if (gamesPlayer1 == 6 && gamesPlayer2 == 6 && tiebreakFinal) {
             tieBreak = true;
             textViewDeuce.setText(getString(R.string.tiebreak));
             /**
              * in tiebreak first serve has player who is next on serve in order and tiebreak is like one game,
-             * so they change serve in tiebreak but continue with normal serving after. WHO the hell INVENTED THIS RULES!!!
+             * so they change serve in tiebreak but continue with normal serving after.
              *
              */
             serveOfPlayerInTieBreak = serveOfPlayer;
@@ -643,26 +693,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * @param v set game rules for 2 or 3 set for win--- CHECKBOX code----
-     */
-    public void changeMatchRules(View v) {
-        CheckBox checkBoxNumberOfSets = (CheckBox) findViewById(R.id.checkbox_number_of_sets);
-        if (winnerPlayer1 == 0 && winnerPlayer2 == 0 && acePlayer1 == 0 &&
-                acePlayer2 == 0 && faultPlayer1 == 0 && faultPlayer2 == 0 &&
-                forcedErrorPlayer1 == 0 && forcedErrorPlayer2 == 0 && unforcedErrorPlayer1 == 0 && unforcedErrorPlayer2 == 0) {
-            if (checkBoxNumberOfSets.isChecked()) {
-                numberOfSetsForWin = 3;
-                checkBoxNumberOfSets.setText(getString(R.string.uncheck_for_3_set_match));
-            } else {
-                numberOfSetsForWin = 2;
-                checkBoxNumberOfSets.setText(getString(R.string.check_for_5_set_match));
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.toast_message), Toast.LENGTH_LONG).show();
-            checkBoxNumberOfSets.setVisibility(View.INVISIBLE);
-        }
-    }
 
     /**
      * change who serve first
@@ -721,115 +751,124 @@ public class MainActivity extends AppCompatActivity {
      * RESET ALL To default
      */
     public void resetAll(View v) {
-        /**
-         * set all variables to default state
-         */
-        pointsPlayer1 = 0;
-        pointsPlayer2 = 0;
-        gamesPlayer1 = 0;
-        gamesPlayer2 = 0;
-        setsPlayer1 = 0;
-        setsPlayer2 = 0;
-        numberOfSetsForWin = 2;
-        serveOfPlayer = true;
-        serveOfPlayerInTieBreak = true;
-        tieBreak = false;
-        firstFault = true;
-        showStatistic = true;
-        matchWon = false;
 
-        winnerPlayer1 = 0;
-        acePlayer1 = 0;
-        faultPlayer1 = 0;
-        doubleFaultPlayer1 = 0;
-        forcedErrorPlayer1 = 0;
-        unforcedErrorPlayer1 = 0;
+        new AlertDialog.Builder(this)
+                .setTitle("Reset Match")
+                .setMessage("Do you really want to reset?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-        winnerPlayer2 = 0;
-        acePlayer2 = 0;
-        faultPlayer2 = 0;
-        doubleFaultPlayer2 = 0;
-        forcedErrorPlayer2 = 0;
-        unforcedErrorPlayer2 = 0;
-        /**
-         * reset POINTS
-         */
-        TextView scoreViewPlayer1 = (TextView) findViewById(R.id.player_1_points);
-        TextView scoreViewPlayer2 = (TextView) findViewById(R.id.player_2_points);
-        TextView textViewDeuce = (TextView) findViewById(R.id.deuce);
-        scoreViewPlayer1.setText("0");
-        scoreViewPlayer2.setText("0");
-        textViewDeuce.setText("");
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Toast.makeText(MainActivity.this, "Match reset", Toast.LENGTH_SHORT).show();
+                        /**
+                         * set all variables to default state
+                         */
+                        pointsPlayer1 = 0;
+                        pointsPlayer2 = 0;
+                        gamesPlayer1 = 0;
+                        gamesPlayer2 = 0;
+                        setsPlayer1 = 0;
+                        setsPlayer2 = 0;
+                        numberOfSetsForWin = 2;
+                        serveOfPlayer = true;
+                        serveOfPlayerInTieBreak = true;
+                        tieBreak = false;
+                        firstFault = true;
+                        showStatistic = true;
+                        matchWon = false;
 
-        /**
-         * reset GAMES
-         */
-        TextView gamesView1 = (TextView) findViewById(R.id.player_1_games);
-        TextView gamesView2 = (TextView) findViewById(R.id.player_2_games);
-        gamesView1.setText("0");
-        gamesView2.setText("0");
+                        winnerPlayer1 = 0;
+                        acePlayer1 = 0;
+                        faultPlayer1 = 0;
+                        doubleFaultPlayer1 = 0;
+                        forcedErrorPlayer1 = 0;
+                        unforcedErrorPlayer1 = 0;
 
-        /**
-         * reset SETS
-         */
-        TextView setViewPlayer1 = (TextView) findViewById(R.id.player_1_sets);
-        TextView setViewPlayer2 = (TextView) findViewById(R.id.player_2_sets);
-        setViewPlayer1.setText("0");
-        setViewPlayer2.setText("0");
+                        winnerPlayer2 = 0;
+                        acePlayer2 = 0;
+                        faultPlayer2 = 0;
+                        doubleFaultPlayer2 = 0;
+                        forcedErrorPlayer2 = 0;
+                        unforcedErrorPlayer2 = 0;
+                        /**
+                         * reset POINTS
+                         */
+                        TextView scoreViewPlayer1 = (TextView) findViewById(R.id.player_1_points);
+                        TextView scoreViewPlayer2 = (TextView) findViewById(R.id.player_2_points);
+                        TextView textViewDeuce = (TextView) findViewById(R.id.deuce);
+                        scoreViewPlayer1.setText("0");
+                        scoreViewPlayer2.setText("0");
+                        textViewDeuce.setText("");
+
+                        /**
+                         * reset GAMES
+                         */
+                        TextView gamesView1 = (TextView) findViewById(R.id.player_1_games);
+                        TextView gamesView2 = (TextView) findViewById(R.id.player_2_games);
+                        gamesView1.setText("0");
+                        gamesView2.setText("0");
+
+                        /**
+                         * reset SETS
+                         */
+                        TextView setViewPlayer1 = (TextView) findViewById(R.id.player_1_sets);
+                        TextView setViewPlayer2 = (TextView) findViewById(R.id.player_2_sets);
+                        setViewPlayer1.setText("0");
+                        setViewPlayer2.setText("0");
 
 
-        /**
-         * reset saved SETS
-         */
-        TextView saveSetViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_1);
-        TextView saveSetViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_1);
-        saveSetViewPlayer1.setText("");
-        saveSetViewPlayer2.setText("");
+                        /**
+                         * reset saved SETS
+                         */
+                        TextView saveSetViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_1);
+                        TextView saveSetViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_1);
+                        saveSetViewPlayer1.setText("");
+                        saveSetViewPlayer2.setText("");
 
-        TextView saveSet2ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_2);
-        TextView saveSet2ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_2);
-        saveSet2ViewPlayer1.setText("");
-        saveSet2ViewPlayer2.setText("");
+                        TextView saveSet2ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_2);
+                        TextView saveSet2ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_2);
+                        saveSet2ViewPlayer1.setText("");
+                        saveSet2ViewPlayer2.setText("");
 
-        TextView saveSet3ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_3);
-        TextView saveSet3ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_3);
-        saveSet3ViewPlayer1.setText("");
-        saveSet3ViewPlayer2.setText("");
+                        TextView saveSet3ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_3);
+                        TextView saveSet3ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_3);
+                        saveSet3ViewPlayer1.setText("");
+                        saveSet3ViewPlayer2.setText("");
 
-        TextView saveSet4ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_4);
-        TextView saveSet4ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_4);
-        saveSet4ViewPlayer1.setText("");
-        saveSet4ViewPlayer2.setText("");
+                        TextView saveSet4ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_4);
+                        TextView saveSet4ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_4);
+                        saveSet4ViewPlayer1.setText("");
+                        saveSet4ViewPlayer2.setText("");
 
-        TextView saveSet5ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_5);
-        TextView saveSet5ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_5);
-        saveSet5ViewPlayer1.setText("");
-        saveSet5ViewPlayer2.setText("");
+                        TextView saveSet5ViewPlayer1 = (TextView) findViewById(R.id.save_sets_player1_set_5);
+                        TextView saveSet5ViewPlayer2 = (TextView) findViewById(R.id.save_sets_player2_set_5);
+                        saveSet5ViewPlayer1.setText("");
+                        saveSet5ViewPlayer2.setText("");
 
-        /**
-         * show buttons
-         */
-        LinearLayout linearLayoutAllButtonsHolder = (LinearLayout) findViewById(R.id.buttons_layout_holder);
-        linearLayoutAllButtonsHolder.setVisibility(View.VISIBLE);
-        LinearLayout linearLayoutStatistic = (LinearLayout) findViewById(R.id.layout_statistic);
-        linearLayoutStatistic.setVisibility(View.GONE);
+                        /**
+                         * show buttons
+                         */
+                        LinearLayout linearLayoutAllButtonsHolder = (LinearLayout) findViewById(R.id.buttons_layout_holder);
+                        linearLayoutAllButtonsHolder.setVisibility(View.VISIBLE);
+                        LinearLayout linearLayoutStatistic = (LinearLayout) findViewById(R.id.layout_statistic);
+                        linearLayoutStatistic.setVisibility(View.GONE);
 
-        /**
-         * reset checkBox
-         */
-        CheckBox checkBoxNumberOfSets = (CheckBox) findViewById(R.id.checkbox_number_of_sets);
-        checkBoxNumberOfSets.setVisibility(View.VISIBLE);
-        checkBoxNumberOfSets.setChecked(false);
-        checkBoxNumberOfSets.setText(getString(R.string.check_for_5_set_match));
-        /**
-         * return serve to player 1 first and remove winner text
-         */
 
-        TextView textViewWinner1 = (TextView) findViewById(R.id.serve_color_Player1);
-        textViewWinner1.setText("");
-        TextView textViewWinner2 = (TextView) findViewById(R.id.serve_color_Player2);
-        textViewWinner2.setText("");
-        serveChange(serveOfPlayer);
+                        /**
+                         * return serve to player 1 first and remove winner text
+                         */
+
+                        TextView textViewWinner1 = (TextView) findViewById(R.id.serve_color_Player1);
+                        textViewWinner1.setText("");
+                        TextView textViewWinner2 = (TextView) findViewById(R.id.serve_color_Player2);
+                        textViewWinner2.setText("");
+                        serveChange(serveOfPlayer);
+
+                    }
+                })
+                .setNegativeButton(android.R.string.no, null).show();
+
+
     }
 
     /**
@@ -892,4 +931,29 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**
+     * changing players names
+     * @param v
+     */
+    public void changePlayersNames(View v) {
+        RelativeLayout playersBoxLayout = (RelativeLayout) findViewById(R.id.change_players_box);
+        playersBoxLayout.setVisibility(View.VISIBLE);
+    }
+
+    public void changePlayersNamesSubmit(View v) {
+        RelativeLayout playersBoxLayout = (RelativeLayout) findViewById(R.id.change_players_box);
+        playersBoxLayout.setVisibility(View.GONE);
+        TextView player1textView = (TextView) findViewById(R.id.player1_name);
+        TextView player2textView = (TextView) findViewById(R.id.player2_name);
+        TextView player1textViewServe = (TextView) findViewById(R.id.player1_name_serve);
+        TextView player2textViewServe = (TextView) findViewById(R.id.player2_name_serve);
+        EditText player1EditText = (EditText) findViewById(R.id.player1_change_name);
+        EditText player2EditText = (EditText) findViewById(R.id.player2_change_name);
+        player1textView.setText(player1EditText.getText());
+        player2textView.setText(player2EditText.getText());
+        player1textViewServe.setText(player1EditText.getText());
+        player2textViewServe.setText(player2EditText.getText());
+    }
+
 }
